@@ -23,15 +23,24 @@
 		setTimeout(checkForUrlChange, 1000);
 	}
 
+	let failedToGetContents = false;
 	function createLinks() {
 		if (!window.location.href.includes('Cargo.toml')) {
 			return;
 		}
 		const cargoToml = document.querySelector('.type-toml');
 		if (cargoToml === null) {
-			console.warn('Unable to find TOML contents');
+			if (failedToGetContents) {
+				console.warn('Unable to find TOML contents');
+				return;
+			}
+
+			// The DOM probably wasn't loaded all the way. Try one more time
+			failedToGetContents = true;
+			setTimeout(createLinks, 1000);
 			return;
 		}
+		failedToGetContents = false;
 		const lines = Array.from(cargoToml.querySelectorAll('.js-file-line'));
 		const dependenciesLineIndex = lines.findIndex((line) => line.innerText === '[dependencies]');
 		if (dependenciesLineIndex === -1) {
